@@ -1,7 +1,7 @@
 import * as _moment from 'moment';
 import * as d3 from 'd3';
 import * as _ from 'lodash';
-import AxisOption from './axis-option';
+import {AxisOption} from './axis-option';
 const moment = _moment;
 
 const DjChartType = {
