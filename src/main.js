@@ -1,8 +1,4 @@
-import Vue from 'vue'
-import App from './App.vue'
-
-Vue.config.productionTip = false
-
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+import VueDjChart from "@/components/VueDjChart";
+export default VueDjChart
+export * from './class/axis-option'
+export * from './class/dj-chart-option'

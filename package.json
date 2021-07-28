@@ -4,11 +4,16 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build --target lib --name vue-dj-chart src/main.js",
     "lint": "vue-cli-service lint"
   },
+  "main": "./dist/vue-dj-chart.common.js",
   "dependencies": {
     "core-js": "^3.6.5",
+    "d3-cloud": "^1.2.5",
+    "dc": "^4.2.7",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {
