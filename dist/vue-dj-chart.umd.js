@@ -78858,12 +78858,12 @@ if (typeof window !== 'undefined') {
 // Indicate to webpack that this file can be concatenated
 /* harmony default export */ var setPublicPath = (null);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"09467d1f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=9b7e649e&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"414ed41d-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=6000c874&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"chartElement"})}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=9b7e649e&
+// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=6000c874&
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__("a4d3");
@@ -81202,6 +81202,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
       }
 
       this.chart.render();
+      this.$emit('rendered');
     },
     observeSize: function observeSize() {
       var _this = this;
@@ -81644,17 +81645,17 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         filter: function filter() {
           _this7.option.filters = _this7.getFilters();
 
-          _this7.changFilter.emit();
+          _this7.$emit('changeFilter');
         },
         filterExact: function filterExact() {
           _this7.option.filters = _this7.getFilters();
 
-          _this7.changFilter.emit();
+          _this7.$emit('changeFilter');
         },
         filterFunction: function filterFunction() {
           _this7.option.filters = _this7.getFilters();
 
-          _this7.changFilter.emit();
+          _this7.$emit('changeFilter');
         }
       };
     },
