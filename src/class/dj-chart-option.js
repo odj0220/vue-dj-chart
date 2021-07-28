@@ -88,7 +88,7 @@ interface ChartOption {
 }
 */
 
-export default class DjChartOption {
+export class DjChartOption {
     data;
     type;
     dcChart;

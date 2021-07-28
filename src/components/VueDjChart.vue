@@ -597,9 +597,11 @@ export default {
     }
   },
   mounted () {
+    if (!this.option) {
+      return ;
+    }
     this.observeSize();
     this.initComponent();
-    console.log('afdafasdf', this.option)
   }
 }
 </script>

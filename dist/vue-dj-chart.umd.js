@@ -78831,8 +78831,8 @@ module.exports = function (key) {
 __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
-__webpack_require__.d(__webpack_exports__, "AxisOption", function() { return /* reexport */ /* Cannot get final name for export "AxisOption" in "./src/class/axis-option.js" (known exports: default, known reexports: ) */ undefined; });
-__webpack_require__.d(__webpack_exports__, "DjChartOption", function() { return /* reexport */ /* Cannot get final name for export "DjChartOption" in "./src/class/dj-chart-option.js" (known exports: default, known reexports: ) */ undefined; });
+__webpack_require__.d(__webpack_exports__, "AxisOption", function() { return /* reexport */ axis_option_AxisOption; });
+__webpack_require__.d(__webpack_exports__, "DjChartOption", function() { return /* reexport */ dj_chart_option_DjChartOption; });
 
 // CONCATENATED MODULE: ./node_modules/@vue/cli-service/lib/commands/build/setPublicPath.js
 // This file is imported into lib/wc client bundles.
@@ -78858,12 +78858,12 @@ if (typeof window !== 'undefined') {
 // Indicate to webpack that this file can be concatenated
 /* harmony default export */ var setPublicPath = (null);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"e17c12d8-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=253d2bcd&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"e17c12d8-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=9b7e649e&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"chartElement"})}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=253d2bcd&
+// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=9b7e649e&
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__("a4d3");
@@ -78987,7 +78987,6 @@ var lodash = __webpack_require__("2ef0");
 
 
 
-
 var axis_option_AxisOption = /*#__PURE__*/function () {
   function AxisOption(fields) {
     var _this = this;
@@ -79048,8 +79047,6 @@ var axis_option_AxisOption = /*#__PURE__*/function () {
 
   return AxisOption;
 }();
-
-
 // CONCATENATED MODULE: ./src/class/dj-chart-option.js
 
 
@@ -79343,7 +79340,7 @@ var dj_chart_option_DjChartOption = /*#__PURE__*/function () {
               _option['tickFormat'] = axis.tickFormat;
             }
 
-            axisOption.push(new axis_option_AxisOption(_option));
+            axisOption.push(new /* Cannot get final name for export "default" in "./src/class/axis-option.js" (known exports: AxisOption, known reexports: ) */ undefined(_option));
           });
         });
         return this.axisOption = axisOption;
@@ -79422,8 +79419,6 @@ var dj_chart_option_DjChartOption = /*#__PURE__*/function () {
 
   return DjChartOption;
 }();
-
-
 // EXTERNAL MODULE: ./node_modules/util/util.js
 var util = __webpack_require__("3022");
 
@@ -81169,7 +81164,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
     };
   },
   props: {
-    option: dj_chart_option_DjChartOption
+    option: /* Cannot get final name for export "default" in "./src/class/dj-chart-option.js" (known exports: DjChartOption, known reexports: ) */ undefined
   },
   methods: {
     initComponent: function initComponent() {
@@ -81779,9 +81774,12 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
     }
   },
   mounted: function mounted() {
+    if (!this.option) {
+      return;
+    }
+
     this.observeSize();
     this.initComponent();
-    console.log('afdafasdf', this.option);
   }
 });
 // CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=script&lang=js&
