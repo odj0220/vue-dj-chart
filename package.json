@@ -1,6 +1,6 @@
 {
   "name": "vue-dj-chart",
-  "version": "0.1.4",
+  "version": "0.2.0-b0",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --target lib --name vue-dj-chart src/main.js",
