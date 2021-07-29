@@ -126,7 +126,6 @@ export class DjChartOption {
     _legendObj;
 
     constructor(chartOption) {
-        console.log(chartOption);
         if (chartOption) {
             const defaultOption = {
                 cloudChart: ['type', 'onClick', 'onClickEvent', 'onFilterChanged', 'legends', 'colors', 'padding', 'dimension', 'group', 'tooltip'],
@@ -248,8 +247,8 @@ export class DjChartOption {
 
     getLegends() {
         if (!this._legendObj) {
-        this.setLegendObj();
-    }
+            this.setLegendObj();
+        }
         return this._legendObj;
     }
 

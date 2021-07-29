@@ -1,5 +1,5 @@
 <template>
- <div ref="chartElement"></div>
+  <div ref="chartElement"></div>
 </template>
 
 <script>
@@ -18,11 +18,18 @@ export default {
       resizeDelay: 300,
       resizeTimer: null,
       chart: null,
-      djChart: null
+      djChart: null,
+      // eslint-disable-next-line vue/no-reserved-keys
+      _option: null
     }
   },
   props: {
     option: DjChartOption
+  },
+  watch: {
+    option() {
+      this.initComponent();
+    }
   },
   methods: {
     initComponent() {
@@ -34,11 +41,10 @@ export default {
         this.option.setAxisOption();
       }
 
-      // eslint-disable-next-line no-undef
       this.djChart = new DjChart(this.option);
       this._option = this.option;
 
-      switch (this.option.type) {
+      switch (this._option.type) {
         case 'pieChart':
           this.chart = this.djChart.pieChart(this.$refs.chartElement);
           this.setPieChart();
@@ -95,44 +101,44 @@ export default {
       this.setMargins();
 
       // input type이 crossfilter와 data일때 처리
-      if (this.option.data !== undefined) {
+      if (this._option.data !== undefined) {
         this.chart.dimension(this.filter());
-        this.chart.group({all: () => this.option.data, size: () => this.option.data.length});
+        this.chart.group({all: () => this._option.data, size: () => this._option.data.length});
       } else {
-        this.chart.dimension(this.option.dimension);
-        this.chart.group(this.option.group);
+        this.chart.dimension(this._option.dimension);
+        this.chart.group(this._option.group);
       }
 
       const overrideFields = ['onClick'];
       overrideFields.forEach(key => {
-        if (this.option[key] !== undefined) {
+        if (this._option[key] !== undefined) {
           if (key === 'onClick') {
-            this.chart[key] = d => this.option.onClick(d, d3.event);
+            this.chart[key] = d => this._option.onClick(d, d3.event);
           } else {
-            this.chart[key] = this.option[key];
+            this.chart[key] = this._option[key];
           }
         }
       });
 
-      if (this.option.onClickEvent) {
+      if (this._option.onClickEvent) {
         this.chart['_onClickEvent'] = this.chart.onClick;
         this.chart['onClick'] = (d) => {
           this.chart._onClickEvent(d);
-          this.option.onClickEvent(d);
+          this._option.onClickEvent(d);
         };
       }
 
-      if (this.option.onFilterChanged) {
-        this.chart.on('filtered', d => this.option.onFilterChanged(d));
+      if (this._option.onFilterChanged) {
+        this.chart.on('filtered', d => this._option.onFilterChanged(d));
       }
 
-      this.option['chart'] = this.chart;
+      this._option['chart'] = this.chart;
     },
     setPieChart() {
       this.create();
-      const _innerRadius = this.option.innerRadius || 30;
-      const _radius = this.option.radius || 80;
-      const _externalLabels = this.option.externalLabels || 0;
+      const _innerRadius = this._option.innerRadius || 30;
+      const _radius = this._option.radius || 80;
+      const _externalLabels = this._option.externalLabels || 0;
       const size = d3.min([+this.width, +this.height]);
 
 
@@ -142,15 +148,15 @@ export default {
           .externalLabels(_externalLabels)
           .drawPaths(true);
 
-      if (this.option.slicesPercent) {
-        let data = this.option.data || this.option.group.all();
+      if (this._option.slicesPercent) {
+        let data = this._option.data || this._option.group.all();
         data = data.sort((a, b) => b.value - a.value);
         let sum = 0;
         let index = 0;
         data.forEach(d => sum += d.value);
         while (index < data.length) {
           const percent = (data[index].value / sum) * 100;
-          if (percent < this.option.slicesPercent) {
+          if (percent < this._option.slicesPercent) {
             break;
           }
           index++;
@@ -159,14 +165,14 @@ export default {
         this.chart.slicesCap(index);
       }
 
-      if (this.option.slicesCap) {
-        this.chart.slicesCap(this.option.slicesCap);
+      if (this._option.slicesCap) {
+        this.chart.slicesCap(this._option.slicesCap);
       }
 
-      if (this.option.colors) {
+      if (this._option.colors) {
         this.chart.colors(d => {
           const key = isArray(d) ? d[0] : d;
-          return this.option.colors[key] || '#ccc';
+          return this._option.colors[key] || '#ccc';
         });
       }
 
@@ -174,8 +180,8 @@ export default {
         chart.selectAll('text.pie-slice').text(d => {
           let key = d.data.key;
           const angle = d.endAngle - d.startAngle;
-          if (this.option.legends) {
-            key = this.option.legends[key] || key;
+          if (this._option.legends) {
+            key = this._option.legends[key] || key;
           }
 
           if (angle > 0.5 || (angle > 0.5 && _externalLabels)) {
@@ -184,15 +190,15 @@ export default {
           return '';
         });
 
-        if (this.option.tooltip) {
+        if (this._option.tooltip) {
           const tooltip = this.getTooltipElem();
           chart.selectAll('title').remove();
           chart.selectAll('g.pie-slice')
-              .on('mousemove', data => {
+              .on('mousemove', (event, data) => {
                 const key = isArray(data.data.key) ? data.data.key[0] : data.data.key;
-                const color = this.option.colors ? this.option.colors[key] : this.chart.getColor(data.data);
-                const pageX = d3.event.pageX;
-                const pageY = d3.event.pageY;
+                const color = this._option.colors ? this._option.colors[key] : this.chart.getColor(data.data);
+                const pageX = event.pageX;
+                const pageY = event.pageY;
                 let left = 0, top = 0;
 
                 tooltip.transition()
@@ -201,7 +207,7 @@ export default {
                     .style('background', color)
                     .style('border-color', color)
                     .style('z-index', 10000);
-                tooltip.html(this.option.tooltip(data));
+                tooltip.html(this._option.tooltip(data));
 
                 setTimeout(() => {
                   const toolX = tooltip.node().clientWidth;
@@ -224,26 +230,26 @@ export default {
       });
     },
     setDcChart() {
-      this.chart = this.djChart[this.option.dcChart](this.$refs.chartElement);
+      this.chart = this.djChart[this._option.dcChart](this.$refs.chartElement);
       this.create();
 
-      Object.keys(this.option).forEach(key => {
+      Object.keys(this._option).forEach(key => {
         if (this.chart[key]) {
-          this.chart[key](this.option[key]);
+          this.chart[key](this._option[key]);
         }
       });
     },
     setCloudChart() {
       this.create();
-      this.chart.padding(this.option.padding);
-      this.chart.legends(this.option.legends);
+      this.chart.padding(this._option.padding);
+      this.chart.legends(this._option.legends);
     },
     setMargins() {
-      if (this.option.margins) {
-        this.chart.margins().left = this.option.margins.left !== undefined ? +this.option.margins.left : 30;
-        this.chart.margins().right = this.option.margins.right !== undefined ? +this.option.margins.right : 50;
-        this.chart.margins().bottom = this.option.margins.bottom !== undefined ? +this.option.margins.bottom : 30;
-        this.chart.margins().top = this.option.margins.top !== undefined ? +this.option.margins.top : 10;
+      if (this._option.margins) {
+        this.chart.margins().left = this._option.margins.left !== undefined ? +this._option.margins.left : 30;
+        this.chart.margins().right = this._option.margins.right !== undefined ? +this._option.margins.right : 50;
+        this.chart.margins().bottom = this._option.margins.bottom !== undefined ? +this._option.margins.bottom : 30;
+        this.chart.margins().top = this._option.margins.top !== undefined ? +this._option.margins.top : 10;
       }
     },
     setMultiSeries() {
@@ -261,15 +267,15 @@ export default {
           .renderHorizontalGridLines(true)
           .renderVerticalGridLines(true)
           .x(d3.scaleLinear().domain([min, max]))
-          .yAxisLabel(this.option.axisOption && this.option.axisOption.length ? this.option.axisOption[0].axisLabel : this.option.yAxisLabel)
-          .xAxisLabel(this.option.xAxisLabel)
+          .yAxisLabel(this._option.axisOption && this._option.axisOption.length ? this._option.axisOption[0].axisLabel : this._option.yAxisLabel)
+          .xAxisLabel(this._option.xAxisLabel)
           .clipPadding(5)
           .elasticY(false)
           .mouseZoomable(false)
           .brushOn(false)
           .seriesAccessor(d => d.key[0])
           .seriesSort((a, b) => {
-            const orderList = this.option.axisOption.map(d => d.series);
+            const orderList = this._option.axisOption.map(d => d.series);
             return orderList.indexOf(a) - orderList.indexOf(b);
           })
           .keyAccessor(d => {
@@ -281,23 +287,23 @@ export default {
       this.setLeftYAxis();
 
       // xAxis
-      if (this.option.xAxisOption) {
-        if (this.option.xAxisOption.domain) {
-          min = this.option.xAxisOption.domain[0];
-          max = this.option.xAxisOption.domain[1];
+      if (this._option.xAxisOption) {
+        if (this._option.xAxisOption.domain) {
+          min = this._option.xAxisOption.domain[0];
+          max = this._option.xAxisOption.domain[1];
         }
-        switch (this.option.xAxisOption.type) {
+        switch (this._option.xAxisOption.type) {
           case 'ordinal':
             this.chart.x(d3.scaleBand()).xUnits(this.djChart.units.ordinal).domain([min, max]);
             break;
           case 'date':
-            if (this.option.xAxisOption.domain) {
-              min = moment(min, this.option.xAxisOption.dateFormat).valueOf();
-              max = moment(max, this.option.xAxisOption.dateFormat).valueOf();
+            if (this._option.xAxisOption.domain) {
+              min = moment(min, this._option.xAxisOption.dateFormat).valueOf();
+              max = moment(max, this._option.xAxisOption.dateFormat).valueOf();
             }
             this.chart.x(d3.scaleTime().domain([new Date(min), new Date(max)]));
-            if (this.option.xAxisOption.dateTickFormat) {
-              this.chart.xAxis().tickFormat(d => moment(d).format(this.option.xAxisOption.dateTickFormat));
+            if (this._option.xAxisOption.dateTickFormat) {
+              this.chart.xAxis().tickFormat(d => moment(d).format(this._option.xAxisOption.dateTickFormat));
             }
             break;
           default:
@@ -305,20 +311,20 @@ export default {
             break;
         }
 
-        if (this.option.xAxisOption.ticks) {
-          this.chart.xAxis().ticks(this.option.xAxisOption.ticks);
+        if (this._option.xAxisOption.ticks) {
+          this.chart.xAxis().ticks(this._option.xAxisOption.ticks);
         }
-        if (this.option.xAxisOption.tickFormat) {
-          this.chart.xAxis().tickFormat(this.option.xAxisOption.tickFormat);
+        if (this._option.xAxisOption.tickFormat) {
+          this.chart.xAxis().tickFormat(this._option.xAxisOption.tickFormat);
         }
 
-        this.chart.xAxisLabel(this.option.xAxisOption.axisLabel);
+        this.chart.xAxisLabel(this._option.xAxisOption.axisLabel);
       }
 
       // series sort
-      if (this.option.order) {
+      if (this._option.order) {
         this.chart.seriesSort((a, b) => {
-          const order = this.option.order;
+          const order = this._option.order;
           const before = order.indexOf(a);
           const after = order.indexOf(b);
           return before - after;
@@ -327,7 +333,7 @@ export default {
 
       // renderlet
       this.chart['renderOn'] = chart => {
-        if (this.option.highlight) {
+        if (this._option.highlight) {
           this.renderHighlight(chart);
         }
       };
@@ -339,17 +345,17 @@ export default {
         this.setLeftYAxis();
 
         setTimeout(() => {
-          this.option.axisOption.forEach((v, i) => {
+          this._option.axisOption.forEach((v, i) => {
             if (i && !v.hide) {
               rightWidth += +v.width ? +v.width : 0;
             }
           });
           // right yAxis 2개 이상부터 35씩 추가
-          if (this.option.yAxisOptions.length > 2) {
-            rightWidth += (this.option.yAxisOptions.length - 2) * 35;
+          if (this._option.yAxisOptions.length > 2) {
+            rightWidth += (this._option.yAxisOptions.length - 2) * 35;
           }
 
-          if (this.option.elasticRightMargin) {
+          if (this._option.elasticRightMargin) {
             this.chart.margins().right = this.chart.marginRight + rightWidth;
           } else {
             this.chart.margins().right = this.chart.marginRight;
@@ -357,9 +363,9 @@ export default {
 
 
           // left yAxis 의 width 구하기
-          if (this.option.elasticLeftMargin) {
+          if (this._option.elasticLeftMargin) {
             leftYAxisWidth = this.chart.svg().selectAll('.axis.y')._groups[0][0].getBoundingClientRect().width + 20;
-            this.chart.margins().left = this.option.axisOption[0].axisLabel || this.option.yAxisLabel ? leftYAxisWidth : this.chart.margins().left;
+            this.chart.margins().left = this._option.axisOption[0].axisLabel || this._option.yAxisLabel ? leftYAxisWidth : this.chart.margins().left;
           }
 
           // left margin 영역 만큼 chart g 이동
@@ -401,7 +407,7 @@ export default {
       };
     },
     setLeftYAxis() {
-      const axisOption = this.option.axisOption;
+      const axisOption = this._option.axisOption;
       if (axisOption && axisOption[0]) {
         let domain;
         const leftOption = axisOption[0];
@@ -412,10 +418,10 @@ export default {
           if (this.chart.group().all().length) {
             domain = [
               d3.min(this.chart.group().all(),
-                  d => typeof d.value === 'object' ? d.value.value : d.value) + (this.option.gap ? - this.option.gap : 0
+                  d => typeof d.value === 'object' ? d.value.value : d.value) + (this._option.gap ? - this._option.gap : 0
               ),
               d3.max(this.chart.group().all(),
-                  d => typeof d.value === 'object' ? d.value.value : d.value) + (this.option.gap ? this.option.gap : 0
+                  d => typeof d.value === 'object' ? d.value.value : d.value) + (this._option.gap ? this._option.gap : 0
               )
             ];
           } else {
@@ -454,30 +460,30 @@ export default {
       }
     },
     setWidthHeight() {
-      this.width = this.option.width ? this.option.width : this.$refs.chartElement.clientWidth || 200;
-      this.height = this.option.height ? this.option.height : this.$refs.chartElement.clientHeight || 400;
+      this.width = this._option.width ? this._option.width : this.$refs.chartElement.clientWidth || 200;
+      this.height = this._option.height ? this._option.height : this.$refs.chartElement.clientHeight || 400;
 
       this.chart
           .width(this.width)
           .height(this.height);
     },
     filter() {
-      if (!this.option.filters) {
-        this.option['filters'] = [];
+      if (!this._option.filters) {
+        this._option['filters'] = [];
       }
 
       return {
         filter: () => {
-          this.option.filters = this.getFilters();
-          this.$emit('changeFilter');
+          this._option.filters = this.getFilters();
+          this.$emit('changFilter');
         },
         filterExact: () => {
-          this.option.filters = this.getFilters();
-          this.$emit('changeFilter');
+          this._option.filters = this.getFilters();
+          this.$emit('changFilter');
         },
         filterFunction: () => {
-          this.option.filters = this.getFilters();
-          this.$emit('changeFilter');
+          this._option.filters = this.getFilters();
+          this.$emit('changFilter');
         }
       };
     },
@@ -513,7 +519,7 @@ export default {
             .attr('transform', `translate(${this.chart.margins().left},${this.chart.margins().top})`);
       }
 
-      const sections = highlight.selectAll('rect.section').data(this.option.highlight);
+      const sections = highlight.selectAll('rect.section').data(this._option.highlight);
       sections.enter()
           .append('rect')
           .attr('class', (d, i) => `section _${i}`)
@@ -523,8 +529,8 @@ export default {
           .attr('x', d => {
             const domain = d.domain;
             let x0;
-            if (this.option.xAxisOption.type === 'date') {
-              const dateFormat = this.option.xAxisOption.dateFormat;
+            if (this._option.xAxisOption.type === 'date') {
+              const dateFormat = this._option.xAxisOption.dateFormat;
               if (domain[0].valueOf) {
                 x0 = domain[0].valueOf();
               } else {
@@ -541,8 +547,8 @@ export default {
             const domain = d.domain;
             let x0, x1;
 
-            if (this.option.xAxisOption.type === 'date') {
-              const dateFormat = this.option.xAxisOption.dateFormat;
+            if (this._option.xAxisOption.type === 'date') {
+              const dateFormat = this._option.xAxisOption.dateFormat;
               x0 = moment(domain[0], dateFormat).valueOf();
               x1 = moment(domain[1], dateFormat).valueOf();
             } else {
@@ -560,8 +566,8 @@ export default {
           .attr('x', d => {
             const domain = d.domain;
             let x0;
-            if (this.option.xAxisOption.type === 'date') {
-              const dateFormat = this.option.xAxisOption.dateFormat;
+            if (this._option.xAxisOption.type === 'date') {
+              const dateFormat = this._option.xAxisOption.dateFormat;
               x0 = moment(domain[0], dateFormat).valueOf();
             } else {
               x0 = domain[0];
@@ -572,8 +578,8 @@ export default {
             const domain = d.domain;
             let x0, x1;
 
-            if (this.option.xAxisOption.type === 'date') {
-              const dateFormat = this.option.xAxisOption.dateFormat;
+            if (this._option.xAxisOption.type === 'date') {
+              const dateFormat = this._option.xAxisOption.dateFormat;
               x0 = moment(domain[0], dateFormat).valueOf();
               x1 = moment(domain[1], dateFormat).valueOf();
             } else {
@@ -597,9 +603,6 @@ export default {
     }
   },
   mounted () {
-    if (!this.option) {
-      return ;
-    }
     this.observeSize();
     this.initComponent();
   }
@@ -607,345 +610,374 @@ export default {
 </script>
 
 <style>
- @import "../../node_modules/dc/dist/style/dc.css";
+svg.dj-chart-cloud  text {
+  font-family: 'Noto Sans KR', 'Nanum Gothic Coding', SpoqaHanSans, sans-serif !important;
+  cursor: pointer;
+}
+svg.dj-chart-cloud  text:hover {opacity: .5;}
 
- svg.dj-chart-cloud  text {
-   font-family: 'Noto Sans KR', 'Nanum Gothic Coding', SpoqaHanSans, sans-serif !important;
-   cursor: pointer;
- }
- svg.dj-chart-cloud  text:hover {opacity: .5;}
+/*app-dj-chart*/
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.drag rect.extent {
+  fill: #008bff;
+  fill-opacity: 0.2;
+}
+svg .x-axis-label, .y-axis-label{
+  opacity: .5;
+  font-size: 11px !important;
+}
 
- /*app-dj-chart*/
- .axis path,
- .axis line {
-   fill: none;
-   stroke: #000;
-   shape-rendering: crispEdges;
- }
- .drag rect.extent {
-   fill: #008bff;
-   fill-opacity: 0.2;
- }
- svg .x-axis-label, .y-axis-label{
-   opacity: .5;
-   font-size: 11px !important;
- }
+g.dc-legend{
+  font-size: 15px;
+}
 
- g.dc-legend{
-   font-size: 15px;
- }
+.radar{
+  margin: 0 !important;
+}
 
- .radar{
-   margin: 0 !important;
- }
+.svg-vis .level-labels{
+  font-size: 9px;
+}
+.svg-vis.radarAxis .axis-labels{
+  font-size: 9px;
+}
+.ntnChart .y.axis .tick text{
+  font-size: 9px;
+}
 
- .svg-vis .level-labels{
-   font-size: 9px;
- }
- .svg-vis.radarAxis .axis-labels{
-   font-size: 9px;
- }
- .ntnChart .y.axis .tick text{
-   font-size: 9px;
- }
+.axis text, .dc-chart .bar_group text.text{
+  font-size: 9px;
+  font-family: "Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif;
+}
 
- .axis text, .dc-chart .bar_group text.text{
-   font-size: 9px;
-   font-family: "Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif;
- }
+.test-result-tc g.dc-legend{
+  font-size: 11px;
+}
 
- .test-result-tc g.dc-legend{
-   font-size: 11px;
- }
+.annotation{
+  font-size: 100%;
+  font-weight: inherit;
+}
 
- .annotation{
-   font-size: 100%;
-   font-weight: inherit;
- }
+path.dc-symbol, .dc-legend g.dc-legend-item.fadeout {
+  fill-opacity: 0.5;
+  stroke-opacity: 0.5;
+}
 
- path.dc-symbol, .dc-legend g.dc-legend-item.fadeout {
-      fill-opacity: 0.5;
-      stroke-opacity: 0.5;
- }
+.dc-chart rect.bar {stroke: none; cursor: pointer; }
+.dc-chart rect.bar:hover {fill-opacity: .5; }
 
- .dc-chart rect.bar {stroke: none; cursor: pointer; }
- .dc-chart rect.bar:hover {fill-opacity: .5; }
+.dc-chart rect.deselected {stroke: none; fill: #ccc;}
 
- .dc-chart rect.deselected {stroke: none; fill: #ccc;}
+.dc-chart .pie-slice {
+  fill: #fff;
+  font-size: 12px;
+  cursor: pointer; }
+.dc-chart .pie-slice.external {fill: #000; }
+.dc-chart .pie-slice :hover, .dc-chart .pie-slice.highlight {fill-opacity: .8; }
 
- .dc-chart .pie-slice {
-    fill: #fff;
-    font-size: 12px;
-    cursor: pointer; }
- .dc-chart .pie-slice.external {fill: #000; }
- .dc-chart .pie-slice :hover, .dc-chart .pie-slice.highlight {fill-opacity: .8; }
+.dc-chart .pie-path {
+  fill: none;
+  stroke-width: 2px;
+  stroke: #000;
+  opacity: 0.4;
+}
 
- .dc-chart .pie-path {
-    fill: none;
-    stroke-width: 2px;
-    stroke: #000;
-    opacity: 0.4;
- }
+.dc-chart .selected path, .dc-chart .selected circle {
+  stroke-width: 3;
+  stroke: #ccc;
+  fill-opacity: 1;
+}
 
- .dc-chart .selected path, .dc-chart .selected circle {
-   stroke-width: 3;
-   stroke: #ccc;
-   fill-opacity: 1;
- }
+.dc-chart .deselected path, .dc-chart .deselected circle {
+  stroke: none;
+  fill-opacity: .5;
+  fill: #ccc;
+}
 
- .dc-chart .deselected path, .dc-chart .deselected circle {
-   stroke: none;
-   fill-opacity: .5;
-   fill: #ccc;
- }
+.dc-chart .axis path, .dc-chart .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
 
- .dc-chart .axis path, .dc-chart .axis line {
-   fill: none;
-   stroke: #000;
-   shape-rendering: crispEdges;
- }
+.dc-chart .axis text {font: 10px sans-serif; }
 
- .dc-chart .axis text {font: 10px sans-serif; }
+.dc-chart .grid-line, .dc-chart .axis .grid-line, .dc-chart .grid-line line, .dc-chart .axis .grid-line line {
+  fill: none;
+  stroke: #ccc;
+  shape-rendering: crispEdges;
+}
 
- .dc-chart .grid-line, .dc-chart .axis .grid-line, .dc-chart .grid-line line, .dc-chart .axis .grid-line line {
-   fill: none;
-   stroke: #ccc;
-   shape-rendering: crispEdges;
- }
+.dc-chart .brush rect.selection {fill: #4682b4; fill-opacity: .125;}
 
- .dc-chart .brush rect.selection {fill: #4682b4; fill-opacity: .125;}
+.dc-chart .brush .custom-brush-handle {
+  fill: #eee;
+  stroke: #666;
+  cursor: ew-resize;
+}
 
- .dc-chart .brush .custom-brush-handle {
-   fill: #eee;
-   stroke: #666;
-   cursor: ew-resize;
- }
+.dc-chart path.line {fill: none; stroke-width: 1.5px;}
 
- .dc-chart path.line {fill: none; stroke-width: 1.5px;}
+.dc-chart path.area {fill-opacity: .3;stroke: none; }
 
- .dc-chart path.area {fill-opacity: .3;stroke: none; }
+.dc-chart path.highlight {
+  stroke-width: 3;
+  fill-opacity: 1;
+  stroke-opacity: 1;
+}
 
- .dc-chart path.highlight {
-    stroke-width: 3;
-    fill-opacity: 1;
-    stroke-opacity: 1;
- }
+.dc-chart g.state {
+  cursor: pointer;
+}
+.dc-chart g.state :hover {
+  fill-opacity: .8;
+}
+.dc-chart g.state path {
+  stroke: #fff;
+}
 
- .dc-chart g.state {
-    cursor: pointer;
- }
- .dc-chart g.state :hover {
-    fill-opacity: .8;
- }
- .dc-chart g.state path {
-    stroke: #fff;
- }
+.dc-chart g.deselected path {
+  fill: #808080; }
 
- .dc-chart g.deselected path {
-    fill: #808080; }
+.dc-chart g.deselected text {
+  display: none; }
 
- .dc-chart g.deselected text {
-    display: none; }
+.dc-chart g.row rect {
+  fill-opacity: 0.8;
+  cursor: pointer; }
+.dc-chart g.row rect:hover {
+  fill-opacity: 0.6; }
 
- .dc-chart g.row rect {
-    fill-opacity: 0.8;
-    cursor: pointer; }
- .dc-chart g.row rect:hover {
-    fill-opacity: 0.6; }
+.dc-chart g.row text {
+  fill: #fff;
+  font-size: 12px;
+  cursor: pointer; }
 
- .dc-chart g.row text {
-    fill: #fff;
-    font-size: 12px;
-    cursor: pointer; }
+.dc-chart g.dc-tooltip path {
+  fill: none;
+  stroke: #808080;
+  stroke-opacity: .8; }
 
- .dc-chart g.dc-tooltip path {
-    fill: none;
-    stroke: #808080;
-    stroke-opacity: .8; }
+.dc-chart g.county path {
+  stroke: #fff;
+  fill: none; }
 
- .dc-chart g.county path {
-    stroke: #fff;
-    fill: none; }
+.dc-chart g.debug rect {
+  fill: #00f;
+  fill-opacity: .2; }
 
- .dc-chart g.debug rect {
-    fill: #00f;
-    fill-opacity: .2; }
+.dc-chart g.axis text {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none; }
 
- .dc-chart g.axis text {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    pointer-events: none; }
+.dc-chart .node {
+  font-size: 0.7em;
+  cursor: pointer; }
+.dc-chart .node :hover {
+  fill-opacity: .8; }
 
- .dc-chart .node {
-    font-size: 0.7em;
-    cursor: pointer; }
- .dc-chart .node :hover {
-    fill-opacity: .8; }
+.dc-chart .bubble {
+  stroke: none;
+  fill-opacity: 0.6; }
 
- .dc-chart .bubble {
-    stroke: none;
-    fill-opacity: 0.6; }
+.dc-chart .highlight {
+  fill-opacity: 1;
+  stroke-opacity: 1; }
 
- .dc-chart .highlight {
-    fill-opacity: 1;
-    stroke-opacity: 1; }
+.dc-chart .fadeout {
+  fill-opacity: 0.2;
+  stroke-opacity: 0.2; }
 
- .dc-chart .fadeout {
-    fill-opacity: 0.2;
-    stroke-opacity: 0.2; }
+.dc-chart .box text {
+  font: 10px sans-serif;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none; }
 
- .dc-chart .box text {
-    font: 10px sans-serif;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    pointer-events: none; }
+.dc-chart .box line {
+  fill: #fff; }
 
- .dc-chart .box line {
-    fill: #fff; }
+.dc-chart .box rect, .dc-chart .box line, .dc-chart .box circle {
+  stroke: #000;
+  stroke-width: 1.5px; }
 
- .dc-chart .box rect, .dc-chart .box line, .dc-chart .box circle {
-                                                stroke: #000;
-                                                stroke-width: 1.5px; }
+.dc-chart .box .center {
+  stroke-dasharray: 3, 3; }
 
- .dc-chart .box .center {
-    stroke-dasharray: 3, 3; }
+.dc-chart .box .data {
+  stroke: none;
+  stroke-width: 0px; }
 
- .dc-chart .box .data {
-    stroke: none;
-    stroke-width: 0px; }
+.dc-chart .box .outlier {
+  fill: none;
+  stroke: #ccc; }
 
- .dc-chart .box .outlier {
-    fill: none;
-    stroke: #ccc; }
+.dc-chart .box .outlierBold {
+  fill: red;
+  stroke: none; }
 
- .dc-chart .box .outlierBold {
-    fill: red;
-    stroke: none; }
+.dc-chart .box.deselected {
+  opacity: 0.5; }
+.dc-chart .box.deselected .box {
+  fill: #ccc; }
 
- .dc-chart .box.deselected {
-    opacity: 0.5; }
- .dc-chart .box.deselected .box {
-    fill: #ccc; }
+.dc-chart .symbol {
+  stroke-width: 1.5px;
+  cursor: pointer;
+}
 
- .dc-chart .symbol {
-    stroke-width: 1.5px;
-    cursor: pointer;
-  }
+.dc-chart .heatmap .box-group.deselected rect {
+  stroke: none;
+  fill-opacity: 0.5;
+  fill: #ccc; }
 
- .dc-chart .heatmap .box-group.deselected rect {
-    stroke: none;
-    fill-opacity: 0.5;
-    fill: #ccc; }
+.dc-chart .heatmap g.axis text {
+  pointer-events: all;
+  cursor: pointer; }
 
- .dc-chart .heatmap g.axis text {
-    pointer-events: all;
-    cursor: pointer; }
+.dc-chart .empty-chart .pie-slice {
+  cursor: default; }
+.dc-chart .empty-chart .pie-slice path {
+  fill: #fee;
+  cursor: default; }
 
- .dc-chart .empty-chart .pie-slice {
-    cursor: default; }
- .dc-chart .empty-chart .pie-slice path {
-    fill: #fee;
-    cursor: default; }
+.dc-data-count {
+  float: right;
+  margin-top: 15px;
+  margin-right: 15px; }
+.dc-data-count .filter-count, .dc-data-count .total-count {
+  color: #3182bd;
+  font-weight: bold; }
 
- .dc-data-count {
-   float: right;
-   margin-top: 15px;
-   margin-right: 15px; }
- .dc-data-count .filter-count, .dc-data-count .total-count {
-   color: #3182bd;
-   font-weight: bold; }
+.dc-legend {
+  font-size: 11px; }
+.dc-legend .dc-legend-item {
+  cursor: pointer; }
+.dc-legend g.dc-legend-item.selected {
+  fill: blue; }
 
- .dc-legend {
-   font-size: 11px; }
- .dc-legend .dc-legend-item {
-   cursor: pointer; }
- .dc-legend g.dc-legend-item.selected {
-   fill: blue; }
+.dc-hard .number-display {
+  float: none; }
 
- .dc-hard .number-display {
-   float: none; }
+div.dc-html-legend {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: inherit;
+  float: right;
+  padding-right: 2px; }
+div.dc-html-legend .dc-legend-item-horizontal {
+  display: inline-block;
+  margin-left: 5px;
+  margin-right: 5px;
+  cursor: pointer; }
+div.dc-html-legend .dc-legend-item-horizontal.selected {
+  background-color: #3182bd;
+  color: white; }
+div.dc-html-legend .dc-legend-item-vertical {
+  display: block;
+  margin-top: 5px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  cursor: pointer; }
+div.dc-html-legend .dc-legend-item-vertical.selected {
+  background-color: #3182bd;
+  color: white; }
+div.dc-html-legend .dc-legend-item-color {
+  display: table-cell;
+  width: 12px;
+  height: 12px; }
+div.dc-html-legend .dc-legend-item-label {
+  line-height: 12px;
+  display: table-cell;
+  vertical-align: middle;
+  padding-left: 3px;
+  padding-right: 3px;
+  font-size: 0.75em; }
 
- div.dc-html-legend {
-   overflow-y: auto;
-   overflow-x: hidden;
-   height: inherit;
-   float: right;
-   padding-right: 2px; }
- div.dc-html-legend .dc-legend-item-horizontal {
-   display: inline-block;
-   margin-left: 5px;
-   margin-right: 5px;
-   cursor: pointer; }
- div.dc-html-legend .dc-legend-item-horizontal.selected {
-   background-color: #3182bd;
-   color: white; }
- div.dc-html-legend .dc-legend-item-vertical {
-   display: block;
-   margin-top: 5px;
-   padding-top: 1px;
-   padding-bottom: 1px;
-   cursor: pointer; }
- div.dc-html-legend .dc-legend-item-vertical.selected {
-   background-color: #3182bd;
-   color: white; }
- div.dc-html-legend .dc-legend-item-color {
-   display: table-cell;
-   width: 12px;
-   height: 12px; }
- div.dc-html-legend .dc-legend-item-label {
-   line-height: 12px;
-   display: table-cell;
-   vertical-align: middle;
-   padding-left: 3px;
-   padding-right: 3px;
-   font-size: 0.75em; }
+.dc-html-legend-container {
+  height: inherit;
+}
 
- .dc-html-legend-container {
-   height: inherit;
- }
+.dj-chart-tooltip {
+  position: relative;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 8px;
+  border-radius: 4px;
 
- .dj-chart-tooltip {
-   position: relative;
-   min-width: 30px;
-   min-height: 30px;
-   padding: 8px;
-   border-radius: 4px;
-   color: #fff;
- }
- .dj-chart-tooltip:after, .dj-chart-tooltip:before {
-             border: solid transparent;
-             content: " ";
-             height: 0;
-             width: 0;
-             position: absolute;
-             pointer-events: none;
-           }
+  top: 0;
+  left: 0;
+  background: #fff !important;
+  border-color: #6e6e6e !important;
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  color: #000 !important;
+}
+.dj-chart-tooltip:after, .dj-chart-tooltip:before {
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
 
- .dj-chart-tooltip:after {
-    border-color: rgba(255, 255, 255, 0);
-    border-width: 5px;
-    margin-top: -5px;
-  }
- .dj-chart-tooltip:before {
-    border-color: rgba(0, 0, 0, 0);
-    border-width: 6px;
-    margin-top: -6px;
-  }
+.dj-chart-tooltip:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-width: 5px;
+  margin-top: -5px;
 
- .dj-chart-tooltip.top:after, .dj-chart-tooltip.top:before {top: 10px;}
- .dj-chart-tooltip.bottom:after, .dj-chart-tooltip.bottom:before {bottom: 4px;}
+  border-top-color: #fff !important;
+  bottom: -9px !important;
+  left: calc(50% - 4px) !important
+}
+.dj-chart-tooltip:before {
+  border-color: rgba(0, 0, 0, 0);
+  border-width: 6px;
+  margin-top: -6px;
 
- .dj-chart-tooltip:after, .dj-chart-tooltip:before {
-   bottom: -10px;
-   border-top-color: inherit;
-   left: calc(50% - 6px);
- }
+  border-top-color: #6e6e6e !important;
+  bottom: -12px !important;
+  left: calc(50% - 5px) !important
+}
+
+.dj-chart-tooltip.top:after, .dj-chart-tooltip.top:before {top: 10px;}
+.dj-chart-tooltip.bottom:after, .dj-chart-tooltip.bottom:before {bottom: 4px;}
+
+.dj-chart-tooltip:after, .dj-chart-tooltip:before {
+  bottom: -10px;
+  border-top-color: inherit;
+  left: calc(50% - 6px);
+}
+
+.dj-chart-tooltip .tooltip-color-chip {
+  display: inline-block;
+  margin-right: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px
+}
+
+.dj-chart-tooltip .tooltip-value {
+  width: 100%;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+}
 </style>

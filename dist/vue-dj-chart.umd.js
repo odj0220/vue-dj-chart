@@ -78858,12 +78858,12 @@ if (typeof window !== 'undefined') {
 // Indicate to webpack that this file can be concatenated
 /* harmony default export */ var setPublicPath = (null);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"414ed41d-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=6000c874&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"5d7fe4de-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/VueDjChart.vue?vue&type=template&id=06fb057a&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"chartElement"})}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=6000c874&
+// CONCATENATED MODULE: ./src/components/VueDjChart.vue?vue&type=template&id=06fb057a&
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__("a4d3");
@@ -79225,8 +79225,6 @@ var dj_chart_option_DjChartOption = /*#__PURE__*/function () {
 
     _defineProperty(this, "_legendObj", void 0);
 
-    console.log(chartOption);
-
     if (chartOption) {
       var defaultOption = {
         cloudChart: ['type', 'onClick', 'onClickEvent', 'onFilterChanged', 'legends', 'colors', 'padding', 'dimension', 'group', 'tooltip'],
@@ -79550,7 +79548,7 @@ var cloud_chart_CloudChart = /*#__PURE__*/function (_BaseMixin) {
 
   var _super = _createSuper(CloudChart);
 
-  function CloudChart() {
+  function CloudChart(element, option) {
     var _this;
 
     _classCallCheck(this, CloudChart);
@@ -79569,8 +79567,14 @@ var cloud_chart_CloudChart = /*#__PURE__*/function (_BaseMixin) {
 
     _defineProperty(_assertThisInitialized(_this), "_tooltip", void 0);
 
+    _defineProperty(_assertThisInitialized(_this), "element", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "option", void 0);
+
     _this._width = 100;
     _this._height = 100;
+    _this.element = element;
+    _this.option = option;
     return _this;
   }
 
@@ -79738,11 +79742,11 @@ var cloud_chart_CloudChart = /*#__PURE__*/function (_BaseMixin) {
 
       if (this.option && this.option.tooltip) {
         var tooltip = this.getTooltipElem();
-        cloud.on('mouseover', function (data) {
-          var screenX = d3["event"].view.innerWidth;
-          var screenY = d3["event"].view.innerHeight;
-          var pageX = d3["event"].pageX;
-          var pageY = d3["event"].pageY;
+        cloud.on('mouseover', function (event, data) {
+          var screenX = event.view.innerWidth;
+          var screenY = event.view.innerHeight;
+          var pageX = event.pageX;
+          var pageY = event.pageY;
           var toolX = tooltip.node().clientWidth;
           var toolY = tooltip.node().clientHeight;
           var left = 0,
@@ -80681,9 +80685,9 @@ var multi_chart_MultiChart = /*#__PURE__*/function (_CoordinateGridMixin) {
 
       if (this.multiOption.tooltip) {
         var tooltip = this.getTooltipElem();
-        symbols.on('mousemove', function (data) {
-          var pageX = d3["event"].pageX;
-          var pageY = d3["event"].pageY;
+        symbols.on('mousemove', function (event, data) {
+          var pageX = event.pageX;
+          var pageY = event.pageY;
           var left = 0,
               top = 0;
           tooltip.transition().duration(100).style('opacity', .9).style('background', color).style('border-color', color).style('z-index', 10000);
@@ -81160,11 +81164,18 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
       resizeDelay: 300,
       resizeTimer: null,
       chart: null,
-      djChart: null
+      djChart: null,
+      // eslint-disable-next-line vue/no-reserved-keys
+      _option: null
     };
   },
   props: {
     option: /* Cannot get final name for export "default" in "./src/class/dj-chart-option.js" (known exports: DjChartOption, known reexports: ) */ undefined
+  },
+  watch: {
+    option: function option() {
+      this.initComponent();
+    }
   },
   methods: {
     initComponent: function initComponent() {
@@ -81174,13 +81185,12 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
 
       if (this.option.type === 'composite') {
         this.option.setAxisOption();
-      } // eslint-disable-next-line no-undef
-
+      }
 
       this.djChart = new dj_chart_DjChart(this.option);
       this._option = this.option;
 
-      switch (this.option.type) {
+      switch (this._option.type) {
         case 'pieChart':
           this.chart = this.djChart.pieChart(this.$refs.chartElement);
           this.setPieChart();
@@ -81246,68 +81256,69 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
       this.setWidthHeight();
       this.setMargins(); // input type이 crossfilter와 data일때 처리
 
-      if (this.option.data !== undefined) {
+      if (this._option.data !== undefined) {
         this.chart.dimension(this.filter());
         this.chart.group({
           all: function all() {
-            return _this2.option.data;
+            return _this2._option.data;
           },
           size: function size() {
-            return _this2.option.data.length;
+            return _this2._option.data.length;
           }
         });
       } else {
-        this.chart.dimension(this.option.dimension);
-        this.chart.group(this.option.group);
+        this.chart.dimension(this._option.dimension);
+        this.chart.group(this._option.group);
       }
 
       var overrideFields = ['onClick'];
       overrideFields.forEach(function (key) {
-        if (_this2.option[key] !== undefined) {
+        if (_this2._option[key] !== undefined) {
           if (key === 'onClick') {
             _this2.chart[key] = function (d) {
-              return _this2.option.onClick(d, d3["event"]);
+              return _this2._option.onClick(d, d3["event"]);
             };
           } else {
-            _this2.chart[key] = _this2.option[key];
+            _this2.chart[key] = _this2._option[key];
           }
         }
       });
 
-      if (this.option.onClickEvent) {
+      if (this._option.onClickEvent) {
         this.chart['_onClickEvent'] = this.chart.onClick;
 
         this.chart['onClick'] = function (d) {
           _this2.chart._onClickEvent(d);
 
-          _this2.option.onClickEvent(d);
+          _this2._option.onClickEvent(d);
         };
       }
 
-      if (this.option.onFilterChanged) {
+      if (this._option.onFilterChanged) {
         this.chart.on('filtered', function (d) {
-          return _this2.option.onFilterChanged(d);
+          return _this2._option.onFilterChanged(d);
         });
       }
 
-      this.option['chart'] = this.chart;
+      this._option['chart'] = this.chart;
     },
     setPieChart: function setPieChart() {
       var _this3 = this;
 
       this.create();
 
-      var _innerRadius = this.option.innerRadius || 30;
+      var _innerRadius = this._option.innerRadius || 30;
 
-      var _radius = this.option.radius || 80;
+      var _radius = this._option.radius || 80;
 
-      var _externalLabels = this.option.externalLabels || 0;
+      var _externalLabels = this._option.externalLabels || 0;
 
       var size = d3["min"]([+this.width, +this.height]);
       this.chart.radius(size / 2 * (_radius / 100)).innerRadius(size / 2 * (_innerRadius / 100)).externalLabels(_externalLabels).drawPaths(true);
 
-      if (this.option.slicesPercent) {
-        var data = this.option.data || this.option.group.all();
+      if (this._option.slicesPercent) {
+        var data = this._option.data || this._option.group.all();
+
         data = data.sort(function (a, b) {
           return b.value - a.value;
         });
@@ -81320,7 +81331,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         while (index < data.length) {
           var percent = data[index].value / sum * 100;
 
-          if (percent < this.option.slicesPercent) {
+          if (percent < this._option.slicesPercent) {
             break;
           }
 
@@ -81330,14 +81341,14 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         this.chart.slicesCap(index);
       }
 
-      if (this.option.slicesCap) {
-        this.chart.slicesCap(this.option.slicesCap);
+      if (this._option.slicesCap) {
+        this.chart.slicesCap(this._option.slicesCap);
       }
 
-      if (this.option.colors) {
+      if (this._option.colors) {
         this.chart.colors(function (d) {
           var key = Object(util["isArray"])(d) ? d[0] : d;
-          return _this3.option.colors[key] || '#ccc';
+          return _this3._option.colors[key] || '#ccc';
         });
       }
 
@@ -81346,8 +81357,8 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
           var key = d.data.key;
           var angle = d.endAngle - d.startAngle;
 
-          if (_this3.option.legends) {
-            key = _this3.option.legends[key] || key;
+          if (_this3._option.legends) {
+            key = _this3._option.legends[key] || key;
           }
 
           if (angle > 0.5 || angle > 0.5 && _externalLabels) {
@@ -81357,19 +81368,19 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
           return '';
         });
 
-        if (_this3.option.tooltip) {
+        if (_this3._option.tooltip) {
           var tooltip = _this3.getTooltipElem();
 
           chart.selectAll('title').remove();
-          chart.selectAll('g.pie-slice').on('mousemove', function (data) {
+          chart.selectAll('g.pie-slice').on('mousemove', function (event, data) {
             var key = Object(util["isArray"])(data.data.key) ? data.data.key[0] : data.data.key;
-            var color = _this3.option.colors ? _this3.option.colors[key] : _this3.chart.getColor(data.data);
-            var pageX = d3["event"].pageX;
-            var pageY = d3["event"].pageY;
+            var color = _this3._option.colors ? _this3._option.colors[key] : _this3.chart.getColor(data.data);
+            var pageX = event.pageX;
+            var pageY = event.pageY;
             var left = 0,
                 top = 0;
             tooltip.transition().duration(100).style('opacity', .9).style('background', color).style('border-color', color).style('z-index', 10000);
-            tooltip.html(_this3.option.tooltip(data));
+            tooltip.html(_this3._option.tooltip(data));
             setTimeout(function () {
               var toolX = tooltip.node().clientWidth;
               var toolY = tooltip.node().clientHeight;
@@ -81386,25 +81397,25 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
     setDcChart: function setDcChart() {
       var _this4 = this;
 
-      this.chart = this.djChart[this.option.dcChart](this.$refs.chartElement);
+      this.chart = this.djChart[this._option.dcChart](this.$refs.chartElement);
       this.create();
-      Object.keys(this.option).forEach(function (key) {
+      Object.keys(this._option).forEach(function (key) {
         if (_this4.chart[key]) {
-          _this4.chart[key](_this4.option[key]);
+          _this4.chart[key](_this4._option[key]);
         }
       });
     },
     setCloudChart: function setCloudChart() {
       this.create();
-      this.chart.padding(this.option.padding);
-      this.chart.legends(this.option.legends);
+      this.chart.padding(this._option.padding);
+      this.chart.legends(this._option.legends);
     },
     setMargins: function setMargins() {
-      if (this.option.margins) {
-        this.chart.margins().left = this.option.margins.left !== undefined ? +this.option.margins.left : 30;
-        this.chart.margins().right = this.option.margins.right !== undefined ? +this.option.margins.right : 50;
-        this.chart.margins().bottom = this.option.margins.bottom !== undefined ? +this.option.margins.bottom : 30;
-        this.chart.margins().top = this.option.margins.top !== undefined ? +this.option.margins.top : 10;
+      if (this._option.margins) {
+        this.chart.margins().left = this._option.margins.left !== undefined ? +this._option.margins.left : 30;
+        this.chart.margins().right = this._option.margins.right !== undefined ? +this._option.margins.right : 50;
+        this.chart.margins().bottom = this._option.margins.bottom !== undefined ? +this._option.margins.bottom : 30;
+        this.chart.margins().top = this._option.margins.top !== undefined ? +this._option.margins.top : 10;
       }
     },
     setMultiSeries: function setMultiSeries() {
@@ -81423,10 +81434,10 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
       };
 
       var leftYAxisWidth = 30;
-      this.chart.chart(subChart).renderHorizontalGridLines(true).renderVerticalGridLines(true).x(d3["scaleLinear"]().domain([min, max])).yAxisLabel(this.option.axisOption && this.option.axisOption.length ? this.option.axisOption[0].axisLabel : this.option.yAxisLabel).xAxisLabel(this.option.xAxisLabel).clipPadding(5).elasticY(false).mouseZoomable(false).brushOn(false).seriesAccessor(function (d) {
+      this.chart.chart(subChart).renderHorizontalGridLines(true).renderVerticalGridLines(true).x(d3["scaleLinear"]().domain([min, max])).yAxisLabel(this._option.axisOption && this._option.axisOption.length ? this._option.axisOption[0].axisLabel : this._option.yAxisLabel).xAxisLabel(this._option.xAxisLabel).clipPadding(5).elasticY(false).mouseZoomable(false).brushOn(false).seriesAccessor(function (d) {
         return d.key[0];
       }).seriesSort(function (a, b) {
-        var orderList = _this5.option.axisOption.map(function (d) {
+        var orderList = _this5._option.axisOption.map(function (d) {
           return d.series;
         });
 
@@ -81439,28 +81450,28 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
 
       this.setLeftYAxis(); // xAxis
 
-      if (this.option.xAxisOption) {
-        if (this.option.xAxisOption.domain) {
-          min = this.option.xAxisOption.domain[0];
-          max = this.option.xAxisOption.domain[1];
+      if (this._option.xAxisOption) {
+        if (this._option.xAxisOption.domain) {
+          min = this._option.xAxisOption.domain[0];
+          max = this._option.xAxisOption.domain[1];
         }
 
-        switch (this.option.xAxisOption.type) {
+        switch (this._option.xAxisOption.type) {
           case 'ordinal':
             this.chart.x(d3["scaleBand"]()).xUnits(this.djChart.units.ordinal).domain([min, max]);
             break;
 
           case 'date':
-            if (this.option.xAxisOption.domain) {
-              min = moment(min, this.option.xAxisOption.dateFormat).valueOf();
-              max = moment(max, this.option.xAxisOption.dateFormat).valueOf();
+            if (this._option.xAxisOption.domain) {
+              min = moment(min, this._option.xAxisOption.dateFormat).valueOf();
+              max = moment(max, this._option.xAxisOption.dateFormat).valueOf();
             }
 
             this.chart.x(d3["scaleTime"]().domain([new Date(min), new Date(max)]));
 
-            if (this.option.xAxisOption.dateTickFormat) {
+            if (this._option.xAxisOption.dateTickFormat) {
               this.chart.xAxis().tickFormat(function (d) {
-                return moment(d).format(_this5.option.xAxisOption.dateTickFormat);
+                return moment(d).format(_this5._option.xAxisOption.dateTickFormat);
               });
             }
 
@@ -81471,21 +81482,21 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
             break;
         }
 
-        if (this.option.xAxisOption.ticks) {
-          this.chart.xAxis().ticks(this.option.xAxisOption.ticks);
+        if (this._option.xAxisOption.ticks) {
+          this.chart.xAxis().ticks(this._option.xAxisOption.ticks);
         }
 
-        if (this.option.xAxisOption.tickFormat) {
-          this.chart.xAxis().tickFormat(this.option.xAxisOption.tickFormat);
+        if (this._option.xAxisOption.tickFormat) {
+          this.chart.xAxis().tickFormat(this._option.xAxisOption.tickFormat);
         }
 
-        this.chart.xAxisLabel(this.option.xAxisOption.axisLabel);
+        this.chart.xAxisLabel(this._option.xAxisOption.axisLabel);
       } // series sort
 
 
-      if (this.option.order) {
+      if (this._option.order) {
         this.chart.seriesSort(function (a, b) {
-          var order = _this5.option.order;
+          var order = _this5._option.order;
           var before = order.indexOf(a);
           var after = order.indexOf(b);
           return before - after;
@@ -81494,7 +81505,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
 
 
       this.chart['renderOn'] = function (chart) {
-        if (_this5.option.highlight) {
+        if (_this5._option.highlight) {
           _this5.renderHighlight(chart);
         }
       }; // update
@@ -81508,27 +81519,27 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         _this5.setLeftYAxis();
 
         setTimeout(function () {
-          _this5.option.axisOption.forEach(function (v, i) {
+          _this5._option.axisOption.forEach(function (v, i) {
             if (i && !v.hide) {
               rightWidth += +v.width ? +v.width : 0;
             }
           }); // right yAxis 2개 이상부터 35씩 추가
 
 
-          if (_this5.option.yAxisOptions.length > 2) {
-            rightWidth += (_this5.option.yAxisOptions.length - 2) * 35;
+          if (_this5._option.yAxisOptions.length > 2) {
+            rightWidth += (_this5._option.yAxisOptions.length - 2) * 35;
           }
 
-          if (_this5.option.elasticRightMargin) {
+          if (_this5._option.elasticRightMargin) {
             _this5.chart.margins().right = _this5.chart.marginRight + rightWidth;
           } else {
             _this5.chart.margins().right = _this5.chart.marginRight;
           } // left yAxis 의 width 구하기
 
 
-          if (_this5.option.elasticLeftMargin) {
+          if (_this5._option.elasticLeftMargin) {
             leftYAxisWidth = _this5.chart.svg().selectAll('.axis.y')._groups[0][0].getBoundingClientRect().width + 20;
-            _this5.chart.margins().left = _this5.option.axisOption[0].axisLabel || _this5.option.yAxisLabel ? leftYAxisWidth : _this5.chart.margins().left;
+            _this5.chart.margins().left = _this5._option.axisOption[0].axisLabel || _this5._option.yAxisLabel ? leftYAxisWidth : _this5.chart.margins().left;
           } // left margin 영역 만큼 chart g 이동
 
 
@@ -81573,7 +81584,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
     setLeftYAxis: function setLeftYAxis() {
       var _this6 = this;
 
-      var axisOption = this.option.axisOption;
+      var axisOption = this._option.axisOption;
 
       if (axisOption && axisOption[0]) {
         var domain;
@@ -81585,9 +81596,9 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
           if (this.chart.group().all().length) {
             domain = [d3["min"](this.chart.group().all(), function (d) {
               return _typeof(d.value) === 'object' ? d.value.value : d.value;
-            }) + (this.option.gap ? -this.option.gap : 0), d3["max"](this.chart.group().all(), function (d) {
+            }) + (this._option.gap ? -this._option.gap : 0), d3["max"](this.chart.group().all(), function (d) {
               return _typeof(d.value) === 'object' ? d.value.value : d.value;
-            }) + (this.option.gap ? this.option.gap : 0)];
+            }) + (this._option.gap ? this._option.gap : 0)];
           } else {
             domain = [0, 100];
           }
@@ -81630,32 +81641,32 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
       }
     },
     setWidthHeight: function setWidthHeight() {
-      this.width = this.option.width ? this.option.width : this.$refs.chartElement.clientWidth || 200;
-      this.height = this.option.height ? this.option.height : this.$refs.chartElement.clientHeight || 400;
+      this.width = this._option.width ? this._option.width : this.$refs.chartElement.clientWidth || 200;
+      this.height = this._option.height ? this._option.height : this.$refs.chartElement.clientHeight || 400;
       this.chart.width(this.width).height(this.height);
     },
     filter: function filter() {
       var _this7 = this;
 
-      if (!this.option.filters) {
-        this.option['filters'] = [];
+      if (!this._option.filters) {
+        this._option['filters'] = [];
       }
 
       return {
         filter: function filter() {
-          _this7.option.filters = _this7.getFilters();
+          _this7._option.filters = _this7.getFilters();
 
-          _this7.$emit('changeFilter');
+          _this7.$emit('changFilter');
         },
         filterExact: function filterExact() {
-          _this7.option.filters = _this7.getFilters();
+          _this7._option.filters = _this7.getFilters();
 
-          _this7.$emit('changeFilter');
+          _this7.$emit('changFilter');
         },
         filterFunction: function filterFunction() {
-          _this7.option.filters = _this7.getFilters();
+          _this7._option.filters = _this7.getFilters();
 
-          _this7.$emit('changeFilter');
+          _this7.$emit('changFilter');
         }
       };
     },
@@ -81686,7 +81697,7 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         highlight = g.insert('g', ':first-child').attr('class', 'highlight').attr('transform', "translate(".concat(this.chart.margins().left, ",").concat(this.chart.margins().top, ")"));
       }
 
-      var sections = highlight.selectAll('rect.section').data(this.option.highlight);
+      var sections = highlight.selectAll('rect.section').data(this._option.highlight);
       sections.enter().append('rect').attr('class', function (d, i) {
         return "section _".concat(i);
       }).attr('fill', function (d) {
@@ -81697,8 +81708,8 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         var domain = d.domain;
         var x0;
 
-        if (_this8.option.xAxisOption.type === 'date') {
-          var dateFormat = _this8.option.xAxisOption.dateFormat;
+        if (_this8._option.xAxisOption.type === 'date') {
+          var dateFormat = _this8._option.xAxisOption.dateFormat;
 
           if (domain[0].valueOf) {
             x0 = domain[0].valueOf();
@@ -81714,8 +81725,8 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         var domain = d.domain;
         var x0, x1;
 
-        if (_this8.option.xAxisOption.type === 'date') {
-          var dateFormat = _this8.option.xAxisOption.dateFormat;
+        if (_this8._option.xAxisOption.type === 'date') {
+          var dateFormat = _this8._option.xAxisOption.dateFormat;
           x0 = moment(domain[0], dateFormat).valueOf();
           x1 = moment(domain[1], dateFormat).valueOf();
         } else {
@@ -81735,8 +81746,8 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         var domain = d.domain;
         var x0;
 
-        if (_this8.option.xAxisOption.type === 'date') {
-          var dateFormat = _this8.option.xAxisOption.dateFormat;
+        if (_this8._option.xAxisOption.type === 'date') {
+          var dateFormat = _this8._option.xAxisOption.dateFormat;
           x0 = moment(domain[0], dateFormat).valueOf();
         } else {
           x0 = domain[0];
@@ -81747,8 +81758,8 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
         var domain = d.domain;
         var x0, x1;
 
-        if (_this8.option.xAxisOption.type === 'date') {
-          var dateFormat = _this8.option.xAxisOption.dateFormat;
+        if (_this8._option.xAxisOption.type === 'date') {
+          var dateFormat = _this8._option.xAxisOption.dateFormat;
           x0 = moment(domain[0], dateFormat).valueOf();
           x1 = moment(domain[1], dateFormat).valueOf();
         } else {
@@ -81775,10 +81786,6 @@ var dj_chart_DjChart = /*#__PURE__*/function (_Base) {
     }
   },
   mounted: function mounted() {
-    if (!this.option) {
-      return;
-    }
-
     this.observeSize();
     this.initComponent();
   }
