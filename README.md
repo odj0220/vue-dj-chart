@@ -16,9 +16,9 @@ DJChartOption 을 이용하여 옵션 생성 후 :option을 통해 랜더
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
-import VueDjChart from 'vue3-dj-chart'
-import {DjChartOption} from 'vue3-dj-chart'
-require('vue3-dj-chart/dist/vue3-dj-chart.css')
+import VueDjChart from 'vue-dj-chart'
+import {DjChartOption} from 'vue-dj-chart'
+require('vue3-dj-chart/dist/vue-dj-chart.css')
 
 export default {
   name: 'App',
@@ -146,3 +146,6 @@ export default {
 </style>
 
 ````
+
+# Example
+[Wiki](https://github.com/odj0220/vue-dj-chart/wiki)
